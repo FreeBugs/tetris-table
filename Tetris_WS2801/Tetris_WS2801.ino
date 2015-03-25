@@ -40,13 +40,18 @@ RGB LEDS data is on pin 1
 #include <avr/pgmspace.h>
 
 //Constants for LED strip.  Hardware SPI can be used by commenting out these defines.
-#define LEDDATAPIN 2
-#define LEDCLKPIN 3
+//#define LEDDATAPIN 2
+//#define LEDCLKPIN 3
+
+#define INLEFT 3
+#define INRIGHT 4
+#define INROTCCW 5
+#define INROTCW 2
 
 //Strips are assumed to be zig-zagged horizontally by default. Uncomment VERT_STRIPS to reverse this behavior
 //#define VERT_STRIPS
 
-#define    FIELD_WIDTH 5
+#define    FIELD_WIDTH 10
 #define    FIELD_HEIGHT 10
 #define    LEDS FIELD_HEIGHT * FIELD_WIDTH
 
@@ -73,7 +78,7 @@ RGB LEDS data is on pin 1
 //const short    delimeter_x      = 11;
 //gameplay Settings
 //const bool    display_preview    = 1;
-#define tick_delay 400 //game speed
+#define tick_delay 600 //game speed
 #define max_level 9
 #define bounce_delay 50
 //weight given to the highest column for ai
@@ -270,9 +275,10 @@ void setup(){
   Serial.print(F("useAI mode = ")); 
   Serial.println(useAi); 
   
-  pinMode(5, INPUT_PULLUP);
-  pinMode(6, INPUT_PULLUP);
-  pinMode(7, INPUT_PULLUP);
+  pinMode(INLEFT, INPUT_PULLUP);
+  pinMode(INRIGHT, INPUT_PULLUP);
+  pinMode(INROTCCW, INPUT_PULLUP);
+  pinMode(INROTCW, INPUT_PULLUP);
   
   //chuck.begin();
   //chuck.update();
@@ -441,16 +447,19 @@ byte getCommand(){
 //      case 's': return RIGHT;
 //    }
 //  }
-  bool btnLeft = digitalRead(6) == LOW;
-  bool btnRight = digitalRead(5) == LOW;
-  bool btnRot = digitalRead(7) == LOW;
+  bool btnLeft = digitalRead(INLEFT) == LOW;
+  bool btnRight = digitalRead(INRIGHT) == LOW;
+  bool btnRotCCW = digitalRead(INROTCCW) == LOW;
+  bool btnRotCW = digitalRead(INROTCW) == LOW;
   byte result = NOTHING;
   if(btnLeft && (previousCommand != LEFT)) result = LEFT; 
   if(!btnLeft && (previousCommand == LEFT)) previousCommand = NOTHING; 
   if(btnRight && (previousCommand != RIGHT)) result = RIGHT;
   if(!btnRight && (previousCommand == RIGHT)) previousCommand = NOTHING;
-  if(btnRot && (previousCommand != COUNTERCLOCKWISE)) result = COUNTERCLOCKWISE;
-  if(!btnRot && (previousCommand == COUNTERCLOCKWISE)) previousCommand = NOTHING;
+  if(btnRotCCW && (previousCommand != COUNTERCLOCKWISE)) result = COUNTERCLOCKWISE;
+  if(!btnRotCCW && (previousCommand == COUNTERCLOCKWISE)) previousCommand = NOTHING;
+  if(btnRotCW && (previousCommand != CLOCKWISE)) result = CLOCKWISE;
+  if(!btnRotCW && (previousCommand == CLOCKWISE)) previousCommand = NOTHING;
   if(result != NOTHING) previousCommand = result;
   return result;
 }
