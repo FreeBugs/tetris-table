@@ -9,10 +9,10 @@
 #include "FastLED.h"          // Bibliothek von GitHub für den WS2812B
 
 //#define DATA_PIN    12        // Datenaeingang des WS2812 am Arduino Port
-#define KEY_LEFT    5        // links
+#define KEY_LEFT    4        // links
 #define KEY_RIGHT   2        // rechts
 #define KEY_DOWN    3         // herabfallen
-#define KEY_ROTATE  4         // drehen
+#define KEY_ROTATE  5         // drehen
 
 const bool kMatrixSerpentineLayout = true;
 #define field_width 10                      //Breite der LED Matrix
@@ -467,7 +467,7 @@ void show_game_over()
      fade_out();
      FastLED.clear();
      FastLED.setBrightness(Brightness);
-    Lauftext_von_unten("GAME OVER",2,100,0,255,0);   // Text, y-Position, Delay, r, g, b  
+    Lauftext_von_unten("Game Over",2,100,0,255,0);   // Text, y-Position, Delay, r, g, b  
     show_score();
 }
 
@@ -489,7 +489,7 @@ void show_highscore()
 void new_game()
 {
   FastLED.clear();
-  Lauftext_von_unten("NEW GAME",2,100,255,0,0);  // Text, y-Position, Delay, r, g, b
+  Lauftext_von_unten("New Game",2,100,255,0,0);  // Text, y-Position, Delay, r, g, b
   for (int i=0 ; i<NUM_LEDS ; i++) 
   {
     LED_Matrix[i]=0;           // Speicher des LED-Feldes(Bildschirm) löschen 
