@@ -1,4 +1,3 @@
-
 //////////////////////////////////////////////////////////////////////
 //
 // Zeichentabelle
@@ -167,7 +166,7 @@ void Lauftext2(String txt, int x, int y, int bremse, int r, int g, int b) // Nac
 
 void Lauftext_blenden(String txt, int x, int y, int warten, int r, int g, int b) // Nacheinander einblenden
 { 
-  LEDS.setBrightness(0);
+  FastLED.setBrightness(0);
   int anzahl=txt.length();
   for (int i=0 ; i<anzahl ; i++)
   {
@@ -175,19 +174,19 @@ void Lauftext_blenden(String txt, int x, int y, int warten, int r, int g, int b)
   ZeichneBuchstaben(txt[i],x,y,r,g,b);  
   for(int ii=0 ; ii<Brightness ; ii++)
   {
-    LEDS.setBrightness(ii);
+    FastLED.setBrightness(ii);
     delay(warten);
-    LEDS.show();
+    FastLED.show();
   }
     
   for(int ii=Brightness ; ii>0 ; ii--)
   {
-    LEDS.setBrightness(ii);
+    FastLED.setBrightness(ii);
     delay(warten);
-    LEDS.show();
+    FastLED.show();
   }
   }
-   LEDS.setBrightness(Brightness);
+   FastLED.setBrightness(Brightness);
 }
 
 
@@ -211,7 +210,7 @@ void zeichnenPos(byte zeichen[], int posx, int posy, int r, int g, int b)
     }
    }
   }
-LEDS.show();
+FastLED.show();
 }
 
 

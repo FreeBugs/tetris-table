@@ -9,12 +9,12 @@
 #include "FastLED.h"          // Bibliothek von GitHub für den WS2812B
 
 //#define DATA_PIN    12        // Datenaeingang des WS2812 am Arduino Port
-#define KEY_LEFT    3        // links
-#define KEY_RIGHT   4        // rechts
-#define KEY_DOWN    8         // herabfallen
-#define KEY_ROTATE  2         // drehen
+#define KEY_LEFT    5        // links
+#define KEY_RIGHT   2        // rechts
+#define KEY_DOWN    3         // herabfallen
+#define KEY_ROTATE  4         // drehen
 
-const bool    kMatrixSerpentineLayout = true;
+const bool kMatrixSerpentineLayout = true;
 #define field_width 10                      //Breite der LED Matrix
 #define field_height 10                     //Höhe der LED Matrix
 #define NUM_LEDS field_width*field_height   //Gesammtanzahl der LED's
@@ -72,8 +72,8 @@ const unsigned int level_ticks_timeout[ 10 ]	=  // Delayzeiten für das Fallen d
 
 void setup() { 
     //FastLED.addLeds<WS2081, DATA_PIN, RGB>(leds, NUM_LEDS); // LED-Array initialisieren
-    FastLED.addLeds<WS2801, GRB>(leds, NUM_LEDS).setCorrection(TypicalSMD5050); // LED-Array initialisieren
-    LEDS.setBrightness(Brightness);                          // Heligkeit setzen
+    FastLED.addLeds<WS2801, GRB>(leds, NUM_LEDS).setCorrection(Typical8mmPixel ); // LED-Array initialisieren
+    FastLED.setBrightness(Brightness);                          // Heligkeit setzen
     for (int i=0 ; i<NUM_LEDS ; i++) LED_Matrix[i]=0;        // Speicher des LED-Feldes(Bildschirm) löschen
     randomSeed(analogRead(0));                               // Zufallsfunktion initialisieren
     pinMode(KEY_LEFT, INPUT_PULLUP);                         // --------------------------------------
@@ -88,14 +88,26 @@ void setup() {
 
  highscore = read_Highscore_from_EEPROM();  // Highscore aus dem EEPROM lesen
  key=get_key();                             // Taste, die beim Starten gedrückt wurde erkennen
- if (key!=2)                                // Vorspann überspringen mit rotate Taste
+ //Serial.begin(9600);  
+ //Serial.println("--- TEST TEST TEST ---");
+ /*if (key != KEY_ROTATE)                                // Vorspann überspringen mit rotate Taste
+  * 
+  */
   {  
+    FastLED.clear();
+    Set(0, 0, COLOR[1]); // rot
+    Set(0, 9, COLOR[2]); // grün
+    Set(9, 0, COLOR[3]); // blau
+    Set(9, 9, COLOR[4]); // gelb
+    FastLED.show();
+    /*
     Lauftext_blenden("MAKE",2,3,3,0,0,255);   // Text, x-Position,y-Position, Delay, r, g, b
     Lauftext_blenden(":",2,3,10,255,0,0);     // Text, x-Position,y-Position, Delay, r, g, b
     Lauftext_blenden("BLOCK",2,3,3,0,255,0); // Text, x-Position,y-Position, Delay, r, g, b
-    delay(500);
     Lauftext_blenden("%",1,3,50,0,255,0);    // Text, x-Position, Delay, r, g, b   ==> Smillie
-  }  
+    */
+    delay(10000);
+  };  
   new_game();
  }
 
@@ -159,7 +171,7 @@ void check_score()
  if (level!=tmp_level)
  {
    fade_out();
-   LEDS.clear();                                    //schaltet nur die LED's aus
+   FastLED.clear();                                    //schaltet nur die LED's aus
    Lauftext_blenden(String(level),2,4,10,0,255,0);  // nächsten Level einblenden
  }
 }
@@ -208,7 +220,7 @@ void display_matrix()
  {
    leds[i]=CRGB (COLOR[LED_Matrix[i]]);
  }
- LEDS.show(); 
+ FastLED.show(); 
 }
 
 void get_brick_measurement()
@@ -226,10 +238,10 @@ void get_brick_measurement()
 
 boolean move_brick()
 {
-  if (Kollision(pos_x,pos_y)==false)
+  if (Kollision(pos_x, pos_y) == false)
   {     
         del_old_Brick();
-        draw_Brick(pos_x,pos_y,current_color); // Spalte, Zeile, Farbe
+        draw_Brick(pos_x, pos_y, current_color); // Spalte, Zeile, Farbe
   }
   update_needed=true;
 }
@@ -243,7 +255,7 @@ void new_Brick()
    current_color=Brick_art+1;                                     // Jede Brickart erhält immer die gleiche Farbe
    for (int i=0 ; i<3 ; i++)current_brick[i]=Brick[Brick_art][i]; // Brick zuweisen
    get_brick_measurement();                                       // Wie breit ist der Brick
-   pos_x=random(brickMeasurement[2],field_width-1-brickMeasurement[0]);// Zufallsfunktion für Spalte  
+   pos_x = random(brickMeasurement[2], field_width - 1 - brickMeasurement[0]);// Zufallsfunktion für Spalte  
    if (Brick[Brick_art][0]>0) pos_y=0; else pos_y=-1;  // Bei einem flachen Brick in der obersten Zeile beginnen
    score++;                                            //Punktzahl erhöhen
 }
@@ -277,7 +289,7 @@ byte get_key() // Steuertasten auslesen
 void Set(int x, int y, CRGB COLOR)
 {
  leds[Pos(x, y)] = CRGB(COLOR);
- //LEDS.show();
+ //FastLED.show();
 }
 
 
@@ -287,22 +299,24 @@ int Pos(int x, int y)
   //int ergebnis =  Zeile-1+(Spalte-1)*field_height;
   //return ergebnis;
     uint16_t i;
-  
+
+  y = field_height - y - 1;
+  /*
   if( kMatrixSerpentineLayout == false) {
     i = (y * field_width) + x;
   }
-
+  */
   if( kMatrixSerpentineLayout == true) {
-    if( y & 0x01) {
-      // Odd rows run backwards
+    if( !(y & 0x01) ) {
+      // Even rows run backwards
       uint8_t reverseX = (field_width - 1) - x;
       i = (y * field_width) + reverseX;
     } else {
-      // Even rows run forwards
+      // Odd rows run forwards
       i = (y * field_width) + x;
     }
   }
-  
+
   return i;
 }
 
@@ -322,19 +336,27 @@ void del_old_Brick()
 
 void draw_Brick(int Spalte, int Zeile, byte Farbe )
 {
-  for (int z=0 ; z<9 ; z++) last_Brick[z] = -1; 
-  Spalte=Spalte+3;
-  for( int ii=0 ; ii<3 ; ii++){ // Brickhöhe
-  for (int i=0 ; i<3 ; i++)     // Brickbreite
-  { 
-   if (current_brick[ii] & (1<<(i)))
-   if ((Zeile+ii) > 0) 
-   { 
-     LED_Matrix[Pos(Spalte-i ,Zeile+ii)]=Farbe;
-     last_Brick[ii*3+i]=Pos(Spalte-i , Zeile+ii);
-   }  
+  for (int z=0 ; z<9 ; z++)
+  {
+    last_Brick[z] = -1; 
   }
- }
+  
+  Spalte=Spalte+3;
+  
+  for( int ii = 0 ; ii < 3 ; ii++) // Brickhöhe
+  {
+    for (int i=0 ; i<3 ; i++) // Brickbreite
+    { 
+      if (current_brick[ii] & (1 << (i)))
+      {
+        if ((Zeile+ii) > 0) 
+        {  
+          LED_Matrix[Pos(Spalte - i ,Zeile + ii)] = Farbe;
+          last_Brick[ii * 3 + i]=Pos(Spalte - i, Zeile + ii);
+        }
+      }
+    }
+  }
 }
 
 boolean Kollision(int Spalte, int Zeile)
@@ -392,10 +414,10 @@ void flashLine(byte line,byte color){  // ------------Zeile Binken lassen
  for (int ii=0 ; ii<3 ; ii++)
  {
    for (int i=1 ; i<field_width+1 ; i++) Set(i, line, COLOR[0]);
-   LEDS.show();
+   FastLED.show();
    delay(200);
    for (int i=1 ; i<field_width+1 ; i++) Set(i, line, COLOR[color]);
-   LEDS.show();
+   FastLED.show();
    delay(200);
  }
 }  
@@ -414,7 +436,7 @@ flashLine( zeile, color);
    LED_Matrix[i*field_height]=0;      
    leds[i*field_height] = CRGB(0, 0, 0); //oberste Reihe ausschalten
  } 
- LEDS.show();
+ FastLED.show();
 }
 
 boolean Is_Game_Over()
@@ -436,29 +458,29 @@ boolean Is_Game_Over()
 
 void show_game_over()
 {
-     LEDS.setBrightness(0); 
-     LEDS.show();
+     FastLED.setBrightness(0); 
+     FastLED.show();
      delay(300);
-     LEDS.setBrightness(Brightness);
-     LEDS.show(); 
+     FastLED.setBrightness(Brightness);
+     FastLED.show(); 
      delay(1000);  
      fade_out();
-     LEDS.clear();
-     LEDS.setBrightness(Brightness);
+     FastLED.clear();
+     FastLED.setBrightness(Brightness);
     Lauftext_von_unten("GAME OVER",2,100,0,255,0);   // Text, y-Position, Delay, r, g, b  
     show_score();
 }
 
 void show_score()
 {
-   LEDS.clear();
+   FastLED.clear();
    Lauftext_von_rechts("Score:",2,100,255,0,0);       // Text, y-Position, Delay, r, g, b   
    Lauftext_von_rechts(String(score),2,100,255,0,0);  // Text, y-Position, Delay, r, g, b   
 }
 
 void show_highscore()
 {
-   LEDS.clear();
+   FastLED.clear();
    Lauftext_von_rechts("Highscore:",2,100,0,0,255);      // Text, y-Position, Delay, r, g, b   
    Lauftext_von_rechts(String(highscore),2,100,0,0,255); // Text, y-Position, Delay, r, g, b   
 }
@@ -466,18 +488,18 @@ void show_highscore()
 
 void new_game()
 {
-  LEDS.clear();
+  FastLED.clear();
   Lauftext_von_unten("NEW GAME",2,100,255,0,0);  // Text, y-Position, Delay, r, g, b
   for (int i=0 ; i<NUM_LEDS ; i++) 
   {
     LED_Matrix[i]=0;           // Speicher des LED-Feldes(Bildschirm) löschen 
     leds[i] = CRGB(50, 0, 0);  //alle LED nacheinander einschalten
-    LEDS.show(); 
+    FastLED.show(); 
   } 
   for (int i=0 ; i<NUM_LEDS ; i++) 
   {
      leds[i] = CRGB(0, 0, 0); //alle LED nacheinander ausschalten
-     LEDS.show(); 
+     FastLED.show(); 
   }
   game_over=false;
   pos_y=0;
@@ -491,9 +513,9 @@ void fade_out()
 {
  for (int i=Brightness ; i>0 ; i--)
  {
-    LEDS.setBrightness(i);
+    FastLED.setBrightness(i);
     delay(20);
-    LEDS.show();  
+    FastLED.show();  
  }
 }
 
@@ -501,9 +523,9 @@ void fade_in()
 {
  for (int i=0 ; i<=Brightness ; i++)
  {
-    LEDS.setBrightness(i);
+    FastLED.setBrightness(i);
     delay(20);
-    LEDS.show();  
+    FastLED.show();  
  }
 }
 
@@ -511,7 +533,7 @@ void fade_in()
 
 void clear_Matrix()
 {
- LEDS.clear();           //alle LED ausschalten
+ FastLED.clear();           //alle LED ausschalten
  for (int i=0 ; i< NUM_LEDS ; i++)
  {   
    LED_Matrix[i]=0;     //Matrix löschen      
